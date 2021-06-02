@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-using log4net;
+using Logging.io;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -28,7 +28,8 @@ namespace uhttpsharp
 {
     public sealed class HttpServer : IDisposable
     {
-        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
         private bool _isActive;
 

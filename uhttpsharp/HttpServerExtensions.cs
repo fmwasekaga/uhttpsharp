@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using uhttpsharp.Listeners;
+using uhttpsharp.RequestProviders;
 
 namespace uhttpsharp
 {
@@ -9,6 +11,18 @@ namespace uhttpsharp
         public static void  Use(this HttpServer server, Func<IHttpContext, Func<Task>, Task> method)
         {
             server.Use(new AnonymousHttpRequestHandler(method));
+        }
+
+        public static IHttpRequestProvider Uses(this IHttpRequestProvider provider, IHttpListener listener)
+        {
+            provider.Use(listener);
+            return provider;
+        }
+
+        public static IHttpRequestProvider Uses(this IHttpRequestProvider provider, IHttpRequestHandler handler)
+        {
+            provider.Use(handler);
+            return provider;
         }
 
     }

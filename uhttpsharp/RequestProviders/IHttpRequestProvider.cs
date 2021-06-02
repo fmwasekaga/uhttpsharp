@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using uhttpsharp.Listeners;
 
 namespace uhttpsharp.RequestProviders
 {
@@ -12,6 +14,11 @@ namespace uhttpsharp.RequestProviders
         /// <param name="streamReader"></param>
         /// <returns></returns>
         Task<IHttpRequest> Provide(StreamReader streamReader);
+
+        void Use(IHttpRequestHandler handler);
+        void Use(IHttpListener listener);
+        IList<IHttpListener> getListeners();
+        IList<IHttpRequestHandler> getRequestHandlers();
 
     }
 }

@@ -108,6 +108,11 @@ namespace uhttpsharp.Headers
             _values = values;
         }
 
+        public void Add(string key, string value)
+        {
+            _values.Add(new KeyValuePair<string, string>(key, value));
+        }
+
         public string GetByName(string name)
         {
             return _values.Where(kvp => kvp.Key.Equals(name, StringComparison.InvariantCultureIgnoreCase)).Select(kvp => kvp.Value).First();

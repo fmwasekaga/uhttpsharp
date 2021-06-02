@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using uhttpsharp.Headers;
+using uhttpsharp.Listeners;
 
 namespace uhttpsharp.RequestProviders
 {
@@ -101,6 +102,29 @@ namespace uhttpsharp.RequestProviders
         {
             var index = header.IndexOf(": ", StringComparison.InvariantCultureIgnoreCase);
             return new KeyValuePair<string, string>(header.Substring(0, index), header.Substring(index + 2));
+        }
+
+        private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
+        private readonly IList<IHttpListener> _listeners = new List<IHttpListener>();
+
+        public void Use(IHttpListener listener)
+        {
+            _listeners.Add(listener);
+        }
+
+        public IList<IHttpListener> getListeners()
+        {
+            return _listeners;
+        }
+
+        public void Use(IHttpRequestHandler handler)
+        {
+            _handlers.Add(handler);
+        }
+
+        public IList<IHttpRequestHandler> getRequestHandlers()
+        {
+            return _handlers;
         }
 
     }

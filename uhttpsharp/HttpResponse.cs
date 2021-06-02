@@ -207,6 +207,11 @@ namespace uhttpsharp
         {
         }
 
+        public HttpResponse(HttpResponseCode code, string contentType, byte[] contentStream, bool keepAliveConnection)
+            : this(code, contentType, new MemoryStream(contentStream), keepAliveConnection)
+        {
+        }
+
         public static HttpResponse CreateWithMessage(HttpResponseCode code, string message, bool keepAliveConnection, string body = "")
         {
             return new HttpResponse(
@@ -215,6 +220,17 @@ namespace uhttpsharp
                     "<html><head><title>{0}</title></head><body><h1>{0}</h1><hr>{1}</body></html>",
                     message, body), keepAliveConnection);
         }
+
+        public static HttpResponse CreateRawMessage(HttpResponseCode code, string message, string contentType = "text/html; charset=utf-8", bool keepAliveConnection = false)
+        {
+            return new HttpResponse(code, contentType, message, keepAliveConnection);
+        }
+
+        public static HttpResponse CreateRawMessage(HttpResponseCode code, byte[] message, string contentType = "text/html; charset=utf-8", bool keepAliveConnection = false)
+        {
+            return new HttpResponse(code, contentType, message, keepAliveConnection);
+        }
+
         private static MemoryStream StringToStream(string content)
         {
             var stream = new MemoryStream();

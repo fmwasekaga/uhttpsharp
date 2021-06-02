@@ -17,7 +17,6 @@
  */
 
 using System.Text;
-using log4net;
 using System.Net;
 using System.Reflection;
 using System;
@@ -27,22 +26,28 @@ using System.Threading.Tasks;
 using uhttpsharp.Clients;
 using uhttpsharp.Headers;
 using uhttpsharp.RequestProviders;
+using Logging.io;
+using uhttpsharp.Events;
 
 namespace uhttpsharp
 {
-    internal sealed class HttpClientHandler
+    public class HttpClientHandler
     {
         private const string CrLf = "\r\n";
         private static readonly byte[] CrLfBuffer = Encoding.UTF8.GetBytes(CrLf);
 
-        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        private readonly IClient _client;
-        private readonly Func<IHttpContext, Task> _requestHandler;
-        private readonly IHttpRequestProvider _requestProvider;
-        private readonly EndPoint _remoteEndPoint;
+        //private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+
+        private Task _task;
+        private /*readonly*/ Stream _stream;
+        private /*readonly*/ IClient _client;
+        private /*readonly*/ Func<IHttpContext, Task> _requestHandler;
+        private /*readonly*/ IHttpRequestProvider _requestProvider;
+        private /*readonly*/ EndPoint _remoteEndPoint;
         private DateTime _lastOperationTime;
-        private readonly Stream _stream;
+
+        public EventHandler ClientEvent { get; set; }
+        public EventHandler<LogEventArgs> LogEvent { get; set; }
 
         public HttpClientHandler(IClient client, Func<IHttpContext, Task> requestHandler, IHttpRequestProvider requestProvider)
         {
@@ -52,11 +57,7 @@ namespace uhttpsharp
             _requestProvider = requestProvider;
 
             _stream = new BufferedStream(_client.Stream, 8192);
-            
-            Logger.InfoFormat("Got Client {0}", _remoteEndPoint);
-
-            Task.Factory.StartNew(Process);
-
+            _task = Task.Factory.StartNew(() => { Process(); });
             UpdateLastOperationTime();
         }
 
@@ -78,7 +79,7 @@ namespace uhttpsharp
 
                         var context = new HttpContext(request, _client.RemoteEndPoint);
 
-                        Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.RemoteEndPoint);
+                        //Logger.InfoFormat("{1} : Got request {0}", request.Uri, _client.RemoteEndPoint);
 
                         await _requestHandler(context).ConfigureAwait(false);
 
@@ -106,11 +107,14 @@ namespace uhttpsharp
             catch (Exception e)
             {
                 // Hate people who make bad calls.
-                Logger.Warn(string.Format("Error while serving : {0}", _remoteEndPoint), e);
+                LogEvent?.Invoke(this, new LogEventArgs(string.Format("Error while serving : {0}. ", _remoteEndPoint) + e.Message + Environment.NewLine + e.StackTrace));
+                //Logger.WarnException(string.Format("Error while serving : {0}", _remoteEndPoint), e);
                 _client.Close();
             }
 
-            Logger.InfoFormat("Lost Client {0}", _remoteEndPoint);
+            LogEvent?.Invoke(this, new LogEventArgs(string.Format("Lost Web Client {0}", _remoteEndPoint)));
+            //Logger.InfoFormat("Lost Client {0}", _remoteEndPoint);
+            ClientEvent?.Invoke(this, new EventArgs());
         }
         private async Task WriteResponse(HttpContext context, StreamWriter writer)
         {
@@ -165,6 +169,18 @@ namespace uhttpsharp
         private void UpdateLastOperationTime()
         {
             // _lastOperationTime = DateTime.Now;
+        }
+
+        public void Dispose()
+        {
+            _remoteEndPoint = null;
+            _client = null;
+            _requestHandler = null;
+            _requestProvider = null;
+
+            _stream = null;
+            _task.Dispose();
+            _task = null;
         }
 
     }

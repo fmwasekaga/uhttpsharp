@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using uhttpsharp.Listeners;
 
 namespace uhttpsharp.RequestProviders
 {
@@ -28,6 +30,29 @@ namespace uhttpsharp.RequestProviders
             }
 
             return new HttpRequestMethodDecorator(childValue, HttpMethodProvider.Default.Provide(methodName));
+        }
+
+        private readonly IList<IHttpRequestHandler> _handlers = new List<IHttpRequestHandler>();
+        private readonly IList<IHttpListener> _listeners = new List<IHttpListener>();
+
+        public void Use(IHttpListener listener)
+        {
+            _listeners.Add(listener);
+        }
+
+        public IList<IHttpListener> getListeners()
+        {
+            return _listeners;
+        }
+
+        public void Use(IHttpRequestHandler handler)
+        {
+            _handlers.Add(handler);
+        }
+
+        public IList<IHttpRequestHandler> getRequestHandlers()
+        {
+            return _handlers;
         }
     }
 }
